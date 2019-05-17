@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: test_video",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--arch",
+                "BNInception",
+                "--dataset",
+                "jester",
+                "--weights",
+                "pretrain/TRN_jester_RGB_BNInception_TRNmultiscale_segment8_best.pth.tar",
+                "--frame_folder",
+                "sample_data/juggling_frames"
+            ]
+        },
+
+    ]
+}
