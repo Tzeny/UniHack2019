@@ -20,7 +20,9 @@ from models import TSN
 import transforms
 from torch.nn import functional as F
 import torch
+
 torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.enabled = True
 
 def extract_frames(video_file, num_frames=8):
     try:
@@ -87,7 +89,7 @@ parser.add_argument('--dataset', type=str, default='moments',
                     choices=['something', 'jester', 'moments', 'somethingv2'])
 parser.add_argument('--rendered_output', type=str, default=None)
 parser.add_argument('--arch', type=str, default="InceptionV3")
-parser.add_argument('--input_size', type=int, default=224)
+parser.add_argument('--input_size', type=int, default=64)
 parser.add_argument('--test_segments', type=int, default=8)
 parser.add_argument('--img_feature_dim', type=int, default=256)
 parser.add_argument('--consensus_type', type=str, default='TRNmultiscale')
@@ -128,6 +130,9 @@ base_dict = {'.'.join(k.split('.')[1:]): v for k, v in list(checkpoint['state_di
 net.load_state_dict(base_dict)
 # pretrain_model_from_path(net, args.weights)
 net.eval()
+
+# torch.onnx.export(net, torch.rand((1,80,3,224,224)), "unihack.onnx", input_names=['input_names'], output_names=['output_names'])
+
 net.half().cuda()
 
 # Initialize frame transforms.
@@ -182,12 +187,14 @@ def get_predictions_for_8_frames(net, frames):
 # for i in range(len(frames)//8):
 #     get_predictions_for_8_frames(net, frames[i:i+8])
 
-print("Initializing webcam.")
-cap = cv2.VideoCapture(0)
+print("Initializing stream.")
+cap = cv2.VideoCapture('rtsp://192.168.6.185:8080/video')
 current_batch = []
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
+    if frame is None:
+        continue
     
     frame = cv2.resize(frame, (256,256))
     cv2.imshow('frame',frame)
@@ -195,7 +202,7 @@ while(True):
     current_batch.append(Image.fromarray(frame))
 
     if len(current_batch) == 8:
-        get_predictions_for_8_frames(net, current_batch)
+        # get_predictions_for_8_frames(net, current_batch)
         current_batch = []
     
     if cv2.waitKey(1) & 0xFF == ord('q'):
